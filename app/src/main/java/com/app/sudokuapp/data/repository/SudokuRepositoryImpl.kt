@@ -90,72 +90,85 @@ class SudokuRepositoryImpl @Inject constructor(
     }
 
     private suspend fun generatePuzzle9x9(difficulty: String): SudokuPuzzle {
-        Log.d("SudokuRepository", "Generando sudoku 9x9 con estrategia combinada...")
+        Log.d("SudokuRepository", "Generando sudoku 9x9...")
         
-        // Generar 9 puzzles 4x4 y combinarlos en una matriz 9x9
-        val puzzleParts = mutableListOf<List<List<Int?>>>()
-        val solutionParts = mutableListOf<List<List<Int>>>()
+        // Intentar obtener directamente un 9x9 del API
+        // La API de Ninjas debería soportar 9x9
+        return try {
+            Log.d("SudokuRepository", "Intentando obtener 9x9 directamente del API")
+            val response = api.generate(9, 9, difficulty, apiKey)
+            
+            Log.d("SudokuRepository", "Respuesta del API: ${response.puzzle.size}x${if (response.puzzle.isNotEmpty()) response.puzzle[0].size else 0}")
+            
+            // Si obtiene un 9x9, usarlo directamente
+            if (response.puzzle.size == 9 && response.puzzle[0].size == 9) {
+                Log.d("SudokuRepository", "✅ API devolvió 9x9 válido")
+                return SudokuPuzzle(9, 9, response.puzzle, response.solution, difficulty)
+            }
+            
+            // Si no es 9x9, usar fallback con 3 puzzles 4x4
+            Log.w("SudokuRepository", "API no devolvió 9x9, usando fallback con 3 puzzles 4x4")
+            generatePuzzle9x9From3x3Blocks(difficulty)
+        } catch (e: Exception) {
+            Log.e("SudokuRepository", "Error obteniendo 9x9 directo, usando fallback: ${e.message}")
+            generatePuzzle9x9From3x3Blocks(difficulty)
+        }
+    }
+
+    private suspend fun generatePuzzle9x9From3x3Blocks(difficulty: String): SudokuPuzzle {
+        Log.d("SudokuRepository", "Generando 9x9 con 3 bloques de 3x3 (usando puzzles 4x4)...")
         
-        // Obtener 9 puzzles 4x4
-        repeat(9) {
+        // Generar 3 puzzles 4x4
+        val blocks = mutableListOf<List<List<Int?>>>()
+        val solutionBlocks = mutableListOf<List<List<Int>>>()
+        
+        repeat(3) { index ->
             try {
                 val response = api.generate(4, 4, difficulty, apiKey)
-                puzzleParts.add(response.puzzle)
-                solutionParts.add(response.solution)
-                Log.d("SudokuRepository", "Puzzle 4x4 #${it + 1} obtenido exitosamente")
+                blocks.add(response.puzzle)
+                solutionBlocks.add(response.solution)
+                Log.d("SudokuRepository", "Bloque ${index + 1}/3 obtenido")
             } catch (e: Exception) {
-                Log.e("SudokuRepository", "Error obteniendo puzzle #${it + 1}: ${e.message}")
+                Log.e("SudokuRepository", "Error en bloque ${index + 1}: ${e.message}")
                 throw e
             }
         }
         
-        // Combinar los 9 puzzles en una matriz 9x9
-        val puzzle9x9 = combineInto9x9(puzzleParts)
-        val solution9x9 = combineInto9x9Solution(solutionParts)
+        // Combinar 3 bloques en un 9x9
+        // Estructura: 3 bloques apilados verticalmente
+        val puzzle9x9 = mutableListOf<List<Int?>>()
+        val solution9x9 = mutableListOf<List<Int>>()
         
-        Log.d("SudokuRepository", "Sudoku 9x9 generado exitosamente: ${puzzle9x9.size}x${puzzle9x9[0].size}")
+        // Cada bloque 4x4 será combinado con ajuste de números
+        for (blockIndex in 0..2) {
+            for (row in blocks[blockIndex]) {
+                val adjustedRow = row.map { cell ->
+                    if (cell != null && cell > 0) {
+                        // Mapear números 1-4 a diferentes rangos según el bloque
+                        val offset = blockIndex * 3
+                        val adjustedValue = cell + offset
+                        if (adjustedValue <= 9) adjustedValue else adjustedValue - 9
+                    } else {
+                        null
+                    }
+                }
+                puzzle9x9.add(adjustedRow)
+            }
+        }
         
+        for (blockIndex in 0..2) {
+            for (row in solutionBlocks[blockIndex]) {
+                val adjustedRow = row.map { cell ->
+                    val offset = blockIndex * 3
+                    val adjustedValue = cell + offset
+                    if (adjustedValue <= 9) adjustedValue else adjustedValue - 9
+                }
+                solution9x9.add(adjustedRow)
+            }
+        }
+        
+        Log.d("SudokuRepository", "✅ Sudoku 9x9 generado: ${puzzle9x9.size}x${puzzle9x9[0].size}")
         return SudokuPuzzle(9, 9, puzzle9x9, solution9x9, difficulty)
-    }
-
-    private fun combineInto9x9(parts: List<List<List<Int?>>>): List<List<Int?>> {
-        val result = mutableListOf<List<Int?>>()
-        
-        // Combinar 3 filas de 3 puzzles cada una
-        for (rowBlock in 0..2) {
-            for (puzzleRow in 0..3) {
-                val row = mutableListOf<Int?>()
-                
-                for (colBlock in 0..2) {
-                    val puzzleIndex = rowBlock * 3 + colBlock
-                    row.addAll(parts[puzzleIndex][puzzleRow])
-                }
-                
-                result.add(row)
-            }
-        }
-        
-        return result
-    }
-
-    private fun combineInto9x9Solution(parts: List<List<List<Int>>>): List<List<Int>> {
-        val result = mutableListOf<List<Int>>()
-        
-        // Combinar 3 filas de 3 puzzles cada una
-        for (rowBlock in 0..2) {
-            for (puzzleRow in 0..3) {
-                val row = mutableListOf<Int>()
-                
-                for (colBlock in 0..2) {
-                    val puzzleIndex = rowBlock * 3 + colBlock
-                    row.addAll(parts[puzzleIndex][puzzleRow])
-                }
-                
-                result.add(row)
-            }
-        }
-        
-        return result
     }
 
     private fun adjustPuzzleSize(
