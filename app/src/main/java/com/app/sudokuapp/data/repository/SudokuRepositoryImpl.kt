@@ -22,7 +22,16 @@ class SudokuRepositoryImpl @Inject constructor(
 
     override suspend fun generate(width: Int, height: Int, difficulty: String): SudokuPuzzle {
         return try {
+            Log.d("SudokuRepository", "=== GENERANDO PUZZLE ===")
+            Log.d("SudokuRepository", "Parámetros: width=$width, height=$height, difficulty=$difficulty")
+            
             val response = api.generate(width, height, difficulty, apiKey)
+            
+            Log.d("SudokuRepository", "Respuesta del API obtenida")
+            Log.d("SudokuRepository", "Número de filas: ${response.puzzle.size}")
+            if (response.puzzle.isNotEmpty()) {
+                Log.d("SudokuRepository", "Primera fila tiene ${response.puzzle[0].size} elementos")
+            }
             
             // Si la respuesta es nula o inválida, lanzamos error
             if (response.puzzle.isEmpty() || response.solution.isEmpty()) {

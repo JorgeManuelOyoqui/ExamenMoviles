@@ -1,5 +1,6 @@
 package com.app.sudokuapp.presentation.screens.sudoku
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.sudokuapp.domain.repository.SudokuProgress
@@ -27,7 +28,17 @@ class SudokuViewModel @Inject constructor(
     fun generate(width: Int, height: Int, difficulty: String) = viewModelScope.launch {
         _ui.update { it.copy(isLoading = true, error = null, message = null) }
         try {
+            Log.d("SudokuViewModel", "=== GENERANDO DESDE VM ===")
+            Log.d("SudokuViewModel", "Solicitado: ${width}x${height}, dificultad: $difficulty")
+            
             val puzzle = generateUseCase(width, height, difficulty)
+            
+            Log.d("SudokuViewModel", "Puzzle recibido: ${puzzle.width}x${puzzle.height}")
+            Log.d("SudokuViewModel", "Número de filas en puzzle.puzzle: ${puzzle.puzzle.size}")
+            if (puzzle.puzzle.isNotEmpty()) {
+                Log.d("SudokuViewModel", "Primera fila tiene: ${puzzle.puzzle[0].size} elementos")
+            }
+            
             val isSimulated = puzzle.width == 4 && puzzle.height == 4
             _ui.update {
                 it.copy(
@@ -42,6 +53,7 @@ class SudokuViewModel @Inject constructor(
                 )
             }
         } catch (e: Exception) {
+            Log.e("SudokuViewModel", "Error: ${e.message}", e)
             _ui.update {
                 it.copy(
                     isLoading = false,
