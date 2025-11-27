@@ -88,20 +88,26 @@ class SudokuRepositoryImpl @Inject constructor(
         }
         
         // Si es más pequeño, expandirlo con nulls (puzzle) o ceros (solución)
-        val expandedPuzzle = puzzle.map { row ->
-            row.toMutableList().apply {
-                while (size < targetWidth) add(null)
+        val expandedPuzzle = mutableListOf<List<Int?>>().apply {
+            addAll(puzzle.map { row ->
+                row.toMutableList().apply {
+                    while (size < targetWidth) add(null)
+                }
+            })
+            while (size < targetHeight) {
+                add(MutableList(targetWidth) { null })
             }
-        }.toMutableList().apply {
-            while (size < targetHeight) add(List(targetWidth) { null })
         }
         
-        val expandedSolution = solution.map { row ->
-            row.toMutableList().apply {
-                while (size < targetWidth) add(0)
+        val expandedSolution = mutableListOf<List<Int>>().apply {
+            addAll(solution.map { row ->
+                row.toMutableList().apply {
+                    while (size < targetWidth) add(0)
+                }
+            })
+            while (size < targetHeight) {
+                add(MutableList(targetWidth) { 0 })
             }
-        }.toMutableList().apply {
-            while (size < targetHeight) add(List(targetWidth) { 0 })
         }
         
         return expandedPuzzle to expandedSolution
