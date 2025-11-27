@@ -80,6 +80,15 @@ class SudokuViewModel @Inject constructor(
     }
 
     private fun validateSudoku(size: Int, puzzle: List<List<Int?>>): Boolean {
+        // Validar que todas las celdas estén llenas
+        for (row in puzzle) {
+            for (cell in row) {
+                if (cell == null || cell == 0) return false
+                // Validar que el número esté en el rango válido para el tamaño
+                if (cell < 1 || cell > size) return false
+            }
+        }
+
         // Validar filas
         for (row in puzzle) {
             val nonNull = row.filterNotNull()
@@ -108,13 +117,6 @@ class SudokuViewModel @Inject constructor(
                     }
                     if (boxValues.size != boxValues.toSet().size) return false
                 }
-            }
-        }
-
-        // Validar que todas las celdas estén llenas
-        for (row in puzzle) {
-            for (cell in row) {
-                if (cell == null || cell == 0) return false
             }
         }
 

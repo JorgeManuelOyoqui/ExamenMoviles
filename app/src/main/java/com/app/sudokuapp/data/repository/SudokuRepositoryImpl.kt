@@ -35,8 +35,25 @@ class SudokuRepositoryImpl @Inject constructor(
                 Log.w("SudokuRepository", "API returned size $actualSize, expected $width. Using requested size.")
             }
             
+            // Sanitizar los datos: asegurar que los números estén en el rango [1, width]
+            val sanitizedPuzzle = response.puzzle.map { row ->
+                row.map { cell ->
+                    if (cell != null && cell > 0) {
+                        if (cell > width) null else cell // Si está fuera de rango, hacerlo null
+                    } else {
+                        null
+                    }
+                }
+            }
+            
+            val sanitizedSolution = response.solution.map { row ->
+                row.map { cell ->
+                    if (cell > width) width else cell // Limitar al máximo
+                }
+            }
+            
             // Usar el tamaño solicitado, no el de la respuesta
-            SudokuPuzzle(width, height, response.puzzle, response.solution, difficulty)
+            SudokuPuzzle(width, height, sanitizedPuzzle, sanitizedSolution, difficulty)
         } catch (e: Exception) {
             Log.e("SudokuRepository", "Error generating puzzle: ${e.message}")
             // Intentar cargar JSON local como fallback

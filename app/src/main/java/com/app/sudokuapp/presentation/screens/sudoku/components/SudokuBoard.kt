@@ -28,7 +28,8 @@ fun SudokuBoard(
                         isHint = isHint,
                         onChange = { v -> onCellChange(r, c, v) },
                         modifier = Modifier,
-                        cellSize = cellSize
+                        cellSize = cellSize,
+                        maxValue = boardSize
                     )
                 }
             }

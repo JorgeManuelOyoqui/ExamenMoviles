@@ -19,7 +19,8 @@ fun SudokuCell(
     isHint: Boolean,
     onChange: (Int?) -> Unit,
     modifier: Modifier = Modifier,
-    cellSize: Float = 40f
+    cellSize: Float = 40f,
+    maxValue: Int = 9
 ) {
     Box(
         modifier = modifier
@@ -27,7 +28,7 @@ fun SudokuCell(
             .border(1.dp, Color.Black)
             .background(if (isHint) Color(0xFFEDEDED) else Color.White)
             .clickable(enabled = !isHint) {
-                val newValue = if (value == null) 1 else if (value < 9) (value + 1) else null
+                val newValue = if (value == null) 1 else if (value < maxValue) (value + 1) else null
                 onChange(newValue)
             },
         contentAlignment = Alignment.Center
