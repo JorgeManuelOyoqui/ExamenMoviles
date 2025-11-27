@@ -19,7 +19,7 @@ import com.app.sudokuapp.presentation.screens.sudoku.components.SudokuToolbar
 
 @Composable
 fun SudokuBoardScreen(
-    viewModel: SudokuViewModel = hiltViewModel(),
+    viewModel: SudokuViewModel,
     onBackClick: () -> Unit
 ) {
     val uiState by viewModel.ui.collectAsStateWithLifecycle()
