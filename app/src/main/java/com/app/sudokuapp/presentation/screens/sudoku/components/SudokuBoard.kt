@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun SudokuBoard(
@@ -12,10 +14,11 @@ fun SudokuBoard(
     onCellChange: (Int, Int, Int?) -> Unit,
     boardSize: Int = 4
 ) {
-    val cellSize = when {
-        boardSize == 4 -> 50f
-        boardSize == 9 -> 32f
-        else -> 40f
+    // Calcular tamaño de celda de manera responsive
+    val cellSizeDp = when {
+        boardSize == 4 -> 50.dp
+        boardSize == 9 -> 35.dp  // Aumentado de 32 para mejor usabilidad
+        else -> 40.dp
     }
     
     Column {
@@ -28,7 +31,7 @@ fun SudokuBoard(
                         isHint = isHint,
                         onChange = { v -> onCellChange(r, c, v) },
                         modifier = Modifier,
-                        cellSize = cellSize,
+                        cellSize = cellSizeDp.value,
                         maxValue = boardSize
                     )
                 }
