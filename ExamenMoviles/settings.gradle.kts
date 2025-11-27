@@ -19,5 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PokedexApp"
+rootProject.name = "SudokuApp"
 include(":app")
+ 
