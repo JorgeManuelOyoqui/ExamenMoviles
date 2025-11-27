@@ -25,6 +25,12 @@ class SudokuRepositoryImpl @Inject constructor(
             Log.d("SudokuRepository", "=== GENERANDO PUZZLE ===")
             Log.d("SudokuRepository", "Parámetros: width=$width, height=$height, difficulty=$difficulty")
             
+            // Si pide 9x9, generar usando estrategia combinada
+            if (width == 9 && height == 9) {
+                return generatePuzzle9x9(difficulty)
+            }
+            
+            // Para 4x4, usar API directamente
             val response = api.generate(width, height, difficulty, apiKey)
             
             Log.d("SudokuRepository", "Respuesta del API obtenida")
@@ -81,6 +87,75 @@ class SudokuRepositoryImpl @Inject constructor(
                 throw RuntimeException("Error de conexión y no hay datos locales: ${e.message}", e)
             }
         }
+    }
+
+    private suspend fun generatePuzzle9x9(difficulty: String): SudokuPuzzle {
+        Log.d("SudokuRepository", "Generando sudoku 9x9 con estrategia combinada...")
+        
+        // Generar 9 puzzles 4x4 y combinarlos en una matriz 9x9
+        val puzzleParts = mutableListOf<List<List<Int?>>>()
+        val solutionParts = mutableListOf<List<List<Int>>>()
+        
+        // Obtener 9 puzzles 4x4
+        repeat(9) {
+            try {
+                val response = api.generate(4, 4, difficulty, apiKey)
+                puzzleParts.add(response.puzzle)
+                solutionParts.add(response.solution)
+                Log.d("SudokuRepository", "Puzzle 4x4 #${it + 1} obtenido exitosamente")
+            } catch (e: Exception) {
+                Log.e("SudokuRepository", "Error obteniendo puzzle #${it + 1}: ${e.message}")
+                throw e
+            }
+        }
+        
+        // Combinar los 9 puzzles en una matriz 9x9
+        val puzzle9x9 = combineInto9x9(puzzleParts)
+        val solution9x9 = combineInto9x9Solution(solutionParts)
+        
+        Log.d("SudokuRepository", "Sudoku 9x9 generado exitosamente: ${puzzle9x9.size}x${puzzle9x9[0].size}")
+        
+        return SudokuPuzzle(9, 9, puzzle9x9, solution9x9, difficulty)
+    }
+
+    private fun combineInto9x9(parts: List<List<List<Int?>>>): List<List<Int?>> {
+        val result = mutableListOf<List<Int?>>()
+        
+        // Combinar 3 filas de 3 puzzles cada una
+        for (rowBlock in 0..2) {
+            for (puzzleRow in 0..3) {
+                val row = mutableListOf<Int?>()
+                
+                for (colBlock in 0..2) {
+                    val puzzleIndex = rowBlock * 3 + colBlock
+                    row.addAll(parts[puzzleIndex][puzzleRow])
+                }
+                
+                result.add(row)
+            }
+        }
+        
+        return result
+    }
+
+    private fun combineInto9x9Solution(parts: List<List<List<Int>>>): List<List<Int>> {
+        val result = mutableListOf<List<Int>>()
+        
+        // Combinar 3 filas de 3 puzzles cada una
+        for (rowBlock in 0..2) {
+            for (puzzleRow in 0..3) {
+                val row = mutableListOf<Int>()
+                
+                for (colBlock in 0..2) {
+                    val puzzleIndex = rowBlock * 3 + colBlock
+                    row.addAll(parts[puzzleIndex][puzzleRow])
+                }
+                
+                result.add(row)
+            }
+        }
+        
+        return result
     }
 
     private fun adjustPuzzleSize(
