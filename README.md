@@ -1,5 +1,7 @@
 Nombre: Jorge Manuel Oyoqui Aguilera
+
 Matrícula: A01711783
+
 Plataforma: Android
 
 # ExamenMoviles
