@@ -53,9 +53,11 @@ Aplicación móvil educativa de Sudoku que permite generar, resolver y verificar
    - Manejo de errores de conexión
 
 7. **Manejo de Estados** ✅
-   - Estados: Loading, Success, Error
-   - Mensajes entendibles al usuario
-   - Botón "Reintentar" en caso de error
+   - **Estado Cargando**: Muestra spinner mientras se solicita puzzle al API
+   - **Estado Éxito**: Muestra el puzzle cargado, solución correcta, progreso guardado
+   - **Estado Error**: Muestra mensajes claros al usuario con botón "Reintentar"
+   - **Errores entendibles**: Incluye detalles de conexión y validación
+   - **Modo offline**: Indica cuando funciona con datos simulados
 
 ### Requerimientos No Funcionales
 
@@ -137,6 +139,61 @@ app/src/main/java/com/app/sudokuapp/
 
 ---
 
+## Manejo de Estados en Detalle
+
+La aplicación implementa un sistema robusto de manejo de estados basado en `StateFlow`:
+
+### Estados Principales
+
+1. **Loading (Cargando)**
+   - Se muestra un `CircularProgressIndicator`
+   - Aparece cuando se solicita un puzzle al API
+   - Presenta un mensaje "Generando puzzle..." al usuario
+
+2. **Success (Éxito)**
+   - Puzzle cargado y listo para jugar
+   - Solución verificada correctamente
+   - Progreso guardado exitosamente
+   - Mensajes verdes indicando operación completada
+
+3. **Error (Error)**
+   - Muestra un `ErrorView` con icono de advertencia
+   - Mensaje descriptivo del problema (conexión, API, validación)
+   - Botón **"Reintentar"** que reintenta la operación fallida
+   - Permite al usuario tomar acción sin perder el contexto
+
+### Flujo de Estados en Acciones
+
+#### Generación de Puzzle
+```
+Esperando → [Usuario selecciona tamaño/dificultad y presiona "Generar"]
+    ↓
+Loading → [Llamada al API]
+    ↓
+Success → [Puzzle mostrado] O Error → [Mostrar ErrorView con Reintentar]
+```
+
+#### Verificación de Solución
+```
+Completando puzzle → [Usuario presiona "Verificar"]
+    ↓
+Validating → [Validación local]
+    ↓
+✅ Correcto [Mensaje: "¡Solución correcta! Felicidades"] 
+O ❌ Incorrecto [Mensaje: "Solución inválida, intenta de nuevo"]
+```
+
+### Errores Entendibles al Usuario
+
+- **"No se pudo generar el puzzle. Asegúrate de tener conexión..."**: Error de API/conexión
+- **"Error de respuesta del API"**: Formato inválido en la respuesta
+- **"Error de validación"**: Datos inconsistentes
+- **"Solución inválida"**: Violación de reglas Sudoku
+
+Cada error incluye opción de reintentar sin perder el estado actual.
+
+---
+
 ## Configuración y Ejecución
 
 ### Requisitos
@@ -166,7 +223,7 @@ private val apiKey = "eVmtNoI1b2vpfsW0tyBo3Q==3X7j0mrCq4sbcIiV"
 No depende de la API para verificar soluciones. Implementa validación completa de reglas Sudoku:
 - Filas sin duplicados
 - Columnas sin duplicados
-- Cuadrantes sin duplicados
+- Cuadrantes sin duplicados (2x2 para 4x4, 3x3 para 9x9)
 
 ### Modo Simulado
 Si no hay conexión al generar un nuevo puzzle, carga automáticamente un JSON local (`assets/200_sudoku.json`) e indica al usuario que está en "Modo sin conexión / datos simulados".
@@ -186,6 +243,7 @@ Guarda y recupera estado completo de la partida:
 - Las decisiones de arquitectura prioriza mantenibilidad y escalabilidad
 - Se enfatiza en experiencia de usuario clara con mensajes informativos
 - Código Kotlin idiomático con null safety
+- Sistema de estados reactivo con `StateFlow` y `collectAsStateWithLifecycle`
 
 ---
 
