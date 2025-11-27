@@ -29,6 +29,13 @@ class SudokuRepositoryImpl @Inject constructor(
                 throw RuntimeException("Error: respuesta inválida de la API")
             }
             
+            // Validar que el tamaño del puzzle coincida con lo solicitado
+            val actualSize = response.puzzle.size
+            if (actualSize != width) {
+                Log.w("SudokuRepository", "API returned size $actualSize, expected $width. Using requested size.")
+            }
+            
+            // Usar el tamaño solicitado, no el de la respuesta
             SudokuPuzzle(width, height, response.puzzle, response.solution, difficulty)
         } catch (e: Exception) {
             Log.e("SudokuRepository", "Error generating puzzle: ${e.message}")
