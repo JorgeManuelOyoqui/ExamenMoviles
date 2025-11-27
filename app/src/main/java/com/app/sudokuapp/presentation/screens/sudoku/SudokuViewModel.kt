@@ -39,7 +39,6 @@ class SudokuViewModel @Inject constructor(
                 Log.d("SudokuViewModel", "Primera fila tiene: ${puzzle.puzzle[0].size} elementos")
             }
             
-            val isSimulated = puzzle.width == 4 && puzzle.height == 4
             _ui.update {
                 it.copy(
                     width = width,
@@ -49,7 +48,7 @@ class SudokuViewModel @Inject constructor(
                     current = puzzle.puzzle.map { row -> row.toList() },
                     solution = puzzle.solution,
                     isLoading = false,
-                    isOfflineSimulated = isSimulated && difficulty == "easy"
+                    isOfflineSimulated = puzzle.isSimulated
                 )
             }
         } catch (e: Exception) {

@@ -75,14 +75,14 @@ class SudokuRepositoryImpl @Inject constructor(
             }
             
             // Usar el tamaño solicitado
-            SudokuPuzzle(width, height, sanitizedPuzzle, sanitizedSolution, difficulty)
+            SudokuPuzzle(width, height, sanitizedPuzzle, sanitizedSolution, difficulty, isSimulated = false)
         } catch (e: Exception) {
             Log.e("SudokuRepository", "Error generating puzzle: ${e.message}")
             // Intentar cargar JSON local como fallback
             try {
                 val localPuzzle = loadLocalPuzzle(context)
                 Log.i("SudokuRepository", "Usando puzzle local (modo simulado)")
-                localPuzzle
+                localPuzzle.copy(isSimulated = true)
             } catch (e2: Exception) {
                 throw RuntimeException("Error de conexión y no hay datos locales: ${e.message}", e)
             }
@@ -110,7 +110,7 @@ class SudokuRepositoryImpl @Inject constructor(
             }
             
             Log.d("SudokuRepository", "Sudoku 9x9 generado: ${finalPuzzle.size}x${finalPuzzle[0].size}")
-            SudokuPuzzle(9, 9, finalPuzzle, finalSolution, difficulty)
+            SudokuPuzzle(9, 9, finalPuzzle, finalSolution, difficulty, isSimulated = false)
         } catch (e: Exception) {
             Log.e("SudokuRepository", "Error generando 9x9: ${e.message}")
             throw e
@@ -203,7 +203,8 @@ class SudokuRepositoryImpl @Inject constructor(
             height = 4,
             puzzle = dto.puzzle,
             solution = dto.solution,
-            difficulty = "easy"
+            difficulty = "easy",
+            isSimulated = true
         )
     }
 }
