@@ -81,35 +81,53 @@ class SudokuRepositoryImpl @Inject constructor(
         targetHeight: Int,
         sourceSize: Int
     ): Pair<List<List<Int?>>, List<List<Int>>> {
+        val actualHeight = puzzle.size
+        val actualWidth = if (puzzle.isNotEmpty()) puzzle[0].size else 0
+        
+        Log.d("AdjustPuzzleSize", "Input: ${actualHeight}x${actualWidth}, Target: ${targetHeight}x${targetWidth}")
+        
         // Si el puzzle es más grande que el solicitado, cortarlo
-        if (sourceSize > targetWidth) {
+        if (actualHeight > targetHeight || actualWidth > targetWidth) {
             val croppedPuzzle = puzzle.take(targetHeight).map { it.take(targetWidth) }
             val croppedSolution = solution.take(targetHeight).map { it.take(targetWidth) }
+            Log.d("AdjustPuzzleSize", "Cropping to ${targetHeight}x${targetWidth}")
             return croppedPuzzle to croppedSolution
         }
         
         // Si es más pequeño, expandirlo con nulls (puzzle) o ceros (solución)
-        val expandedPuzzle = mutableListOf<List<Int?>>().apply {
-            addAll(puzzle.map { row ->
-                row.toMutableList().apply {
-                    while (size < targetWidth) add(null)
-                }
-            })
-            while (size < targetHeight) {
-                add(MutableList(targetWidth) { null })
+        val expandedPuzzle = mutableListOf<List<Int?>>()
+        
+        // Primero, expandir las filas existentes
+        for (row in puzzle) {
+            val expandedRow = row.toMutableList()
+            while (expandedRow.size < targetWidth) {
+                expandedRow.add(null)
             }
+            expandedPuzzle.add(expandedRow)
         }
         
-        val expandedSolution = mutableListOf<List<Int>>().apply {
-            addAll(solution.map { row ->
-                row.toMutableList().apply {
-                    while (size < targetWidth) add(0)
-                }
-            })
-            while (size < targetHeight) {
-                add(MutableList(targetWidth) { 0 })
-            }
+        // Luego agregar filas faltantes
+        while (expandedPuzzle.size < targetHeight) {
+            expandedPuzzle.add(MutableList(targetWidth) { null })
         }
+        
+        val expandedSolution = mutableListOf<List<Int>>()
+        
+        // Primero, expandir las filas existentes de la solución
+        for (row in solution) {
+            val expandedRow = row.toMutableList()
+            while (expandedRow.size < targetWidth) {
+                expandedRow.add(0)
+            }
+            expandedSolution.add(expandedRow)
+        }
+        
+        // Luego agregar filas faltantes de la solución
+        while (expandedSolution.size < targetHeight) {
+            expandedSolution.add(MutableList(targetWidth) { 0 })
+        }
+        
+        Log.d("AdjustPuzzleSize", "Expanded to ${expandedPuzzle.size}x${expandedPuzzle[0].size}")
         
         return expandedPuzzle to expandedSolution
     }
