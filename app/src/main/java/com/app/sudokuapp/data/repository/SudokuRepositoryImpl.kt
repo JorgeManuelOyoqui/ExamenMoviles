@@ -31,12 +31,18 @@ class SudokuRepositoryImpl @Inject constructor(
             
             // Validar que el tamaño del puzzle coincida con lo solicitado
             val actualSize = response.puzzle.size
-            if (actualSize != width) {
-                Log.w("SudokuRepository", "API returned size $actualSize, expected $width. Using requested size.")
+            Log.d("SudokuRepository", "Requested: ${width}x${height}, API returned: ${actualSize}x${response.puzzle[0].size}")
+            
+            // Si el tamaño no coincide, ajustar la matriz
+            val (adjustedPuzzle, adjustedSolution) = if (actualSize != width) {
+                Log.w("SudokuRepository", "Size mismatch. Adjusting from ${actualSize}x${response.puzzle[0].size} to ${width}x${height}")
+                adjustPuzzleSize(response.puzzle, response.solution, width, height, actualSize)
+            } else {
+                response.puzzle to response.solution
             }
             
             // Sanitizar los datos: asegurar que los números estén en el rango [1, width]
-            val sanitizedPuzzle = response.puzzle.map { row ->
+            val sanitizedPuzzle = adjustedPuzzle.map { row ->
                 row.map { cell ->
                     if (cell != null && cell > 0) {
                         if (cell > width) null else cell // Si está fuera de rango, hacerlo null
@@ -46,13 +52,13 @@ class SudokuRepositoryImpl @Inject constructor(
                 }
             }
             
-            val sanitizedSolution = response.solution.map { row ->
+            val sanitizedSolution = adjustedSolution.map { row ->
                 row.map { cell ->
                     if (cell > width) width else cell // Limitar al máximo
                 }
             }
             
-            // Usar el tamaño solicitado, no el de la respuesta
+            // Usar el tamaño solicitado
             SudokuPuzzle(width, height, sanitizedPuzzle, sanitizedSolution, difficulty)
         } catch (e: Exception) {
             Log.e("SudokuRepository", "Error generating puzzle: ${e.message}")
@@ -65,6 +71,40 @@ class SudokuRepositoryImpl @Inject constructor(
                 throw RuntimeException("Error de conexión y no hay datos locales: ${e.message}", e)
             }
         }
+    }
+
+    private fun adjustPuzzleSize(
+        puzzle: List<List<Int?>>,
+        solution: List<List<Int>>,
+        targetWidth: Int,
+        targetHeight: Int,
+        sourceSize: Int
+    ): Pair<List<List<Int?>>, List<List<Int>>> {
+        // Si el puzzle es más grande que el solicitado, cortarlo
+        if (sourceSize > targetWidth) {
+            val croppedPuzzle = puzzle.take(targetHeight).map { it.take(targetWidth) }
+            val croppedSolution = solution.take(targetHeight).map { it.take(targetWidth) }
+            return croppedPuzzle to croppedSolution
+        }
+        
+        // Si es más pequeño, expandirlo con nulls (puzzle) o ceros (solución)
+        val expandedPuzzle = puzzle.map { row ->
+            row.toMutableList().apply {
+                while (size < targetWidth) add(null)
+            }
+        }.toMutableList().apply {
+            while (size < targetHeight) add(List(targetWidth) { null })
+        }
+        
+        val expandedSolution = solution.map { row ->
+            row.toMutableList().apply {
+                while (size < targetWidth) add(0)
+            }
+        }.toMutableList().apply {
+            while (size < targetHeight) add(List(targetWidth) { 0 })
+        }
+        
+        return expandedPuzzle to expandedSolution
     }
 
     override suspend fun solve(
