@@ -31,11 +31,12 @@ class SudokuRepositoryImpl @Inject constructor(
             
             // Validar que el tamaño del puzzle coincida con lo solicitado
             val actualSize = response.puzzle.size
-            Log.d("SudokuRepository", "Requested: ${width}x${height}, API returned: ${actualSize}x${response.puzzle[0].size}")
+            val actualWidth = if (response.puzzle.isNotEmpty()) response.puzzle[0].size else 0
+            Log.d("SudokuRepository", "Requested: ${width}x${height}, API returned: ${actualSize}x${actualWidth}")
             
             // Si el tamaño no coincide, ajustar la matriz
-            val (adjustedPuzzle, adjustedSolution) = if (actualSize != width) {
-                Log.w("SudokuRepository", "Size mismatch. Adjusting from ${actualSize}x${response.puzzle[0].size} to ${width}x${height}")
+            val (adjustedPuzzle, adjustedSolution) = if (actualSize != width || actualWidth != width) {
+                Log.w("SudokuRepository", "Size mismatch. Adjusting from ${actualSize}x${actualWidth} to ${width}x${height}")
                 adjustPuzzleSize(response.puzzle, response.solution, width, height, actualSize)
             } else {
                 response.puzzle to response.solution
