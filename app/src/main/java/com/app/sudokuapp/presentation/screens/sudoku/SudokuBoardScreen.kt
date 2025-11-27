@@ -1,5 +1,6 @@
 package com.app.sudokuapp.presentation.screens.sudoku
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.icons.Icons
@@ -45,9 +46,17 @@ fun SudokuBoardScreen(
             )
         }
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .background(MaterialTheme.colorScheme.background)
+        ) {
             when {
-                uiState.isLoading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
+                uiState.isLoading -> CircularProgressIndicator(
+                    Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colorScheme.primary
+                )
                 uiState.error != null -> ErrorView(
                     message = uiState.error ?: "Error desconocido",
                     onRetry = { viewModel.generate(uiState.width, uiState.height, uiState.difficulty) },
@@ -56,7 +65,7 @@ fun SudokuBoardScreen(
                 uiState.base.isNotEmpty() -> {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(20.dp),
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(16.dp)
