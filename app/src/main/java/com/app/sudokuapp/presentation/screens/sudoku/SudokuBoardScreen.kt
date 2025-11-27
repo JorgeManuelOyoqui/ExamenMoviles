@@ -27,12 +27,21 @@ fun SudokuBoardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sudoku ${uiState.width}x${uiState.height} y ${uiState.difficulty}") },
+                title = {
+                    Text(
+                        "Sudoku ${uiState.width}x${uiState.height} - ${uiState.difficulty}",
+                        style = MaterialTheme.typography.titleLarge,
+                        color = Color.White
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         }
     ) { padding ->
