@@ -1,6 +1,7 @@
 package com.app.sudokuapp.data.repository
 
 import android.content.Context
+import android.util.Log
 import com.app.sudokuapp.data.local.preferences.SudokuPreferences
 import com.app.sudokuapp.data.remote.api.SudokuApi
 import com.app.sudokuapp.data.remote.dto.SudokuGenerateDto
@@ -17,16 +18,22 @@ class SudokuRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : SudokuRepository {
 
-    private val apiKey = "wLVPN1zV08lJYF7uXqgyPw==zVwp6TlVcAO1NLUf"
+    private val apiKey = "eVmtNoI1b2vpfsW0tyBo3Q==3X7j0mrCq4sbcIiV"
 
-    override suspend fun generate(width: Int, height: Int, difficulty: String): SudokuPuzzle =
-        try {
-            val dto = api.generate(width, height, difficulty, apiKey)
-            SudokuPuzzle(width, height, dto.puzzle, dto.solution, difficulty)
+    override suspend fun generate(width: Int, height: Int, difficulty: String): SudokuPuzzle {
+        val response = try {
+            api.generate(width, height, difficulty, apiKey)
         } catch (e: Exception) {
-            val local = loadLocalPuzzle(context)
-            SudokuPuzzle(local.width, local.height, local.puzzle, local.solution, local.difficulty)
+            throw RuntimeException("Error de conexión: ${e.message}", e)
         }
+
+        // Si la respuesta es nula o inválida, lanzamos error
+        if (response.puzzle.isEmpty() || response.solution.isEmpty()) {
+            throw RuntimeException("Error: respuesta inválida de la API")
+        }
+
+        return SudokuPuzzle(width, height, response.puzzle, response.solution, difficulty)
+    }
 
     override suspend fun solve(
         width: Int,

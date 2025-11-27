@@ -36,12 +36,16 @@ class SudokuViewModel @Inject constructor(
                     base = puzzle.puzzle,
                     current = puzzle.puzzle.map { row -> row.toList() },
                     solution = puzzle.solution,
-                    isLoading = false,
-                    isOfflineSimulated = (puzzle.solution.isEmpty())
+                    isLoading = false
                 )
             }
         } catch (e: Exception) {
-            _ui.update { it.copy(isLoading = false, error = "No se pudo generar el puzzle. Reintenta.") }
+            _ui.update {
+                it.copy(
+                    isLoading = false,
+                    error = "No se pudo generar el puzzle: ${e.message}"
+                )
+            }
         }
     }
 

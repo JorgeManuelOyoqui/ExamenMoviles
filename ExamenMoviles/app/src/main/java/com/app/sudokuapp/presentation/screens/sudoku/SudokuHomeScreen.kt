@@ -30,13 +30,13 @@ fun SudokuHomeScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Selecciona tamaño")
+            Text("Selecciona tamaño: ${selectedSize}")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { selectedSize = 4 }) { Text("4x4") }
                 Button(onClick = { selectedSize = 9 }) { Text("9x9") }
             }
 
-            Text("Selecciona dificultad")
+            Text("Selecciona dificultad: ${selectedDifficulty}")
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Button(onClick = { selectedDifficulty = "easy" }) { Text("Fácil") }
                 Button(onClick = { selectedDifficulty = "medium" }) { Text("Medio") }
